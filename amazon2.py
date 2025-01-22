@@ -15,9 +15,12 @@ chrome_options = Options()
 chrome_options.add_argument("--start-maximized")
 service = Service(ChromeDriverManager().install())
 driver = webdriver.Chrome(service=service, options=chrome_options)
+driver.get("https://www.amazon.com")
 
 try:
-    driver.get("https://www.amazon.com")
+    time.sleep(1)
+    driver.find_element(By.LINK_TEXT, "Try different image").click()
+    time.sleep(1)
 
     # Paso 1: Realizar una búsqueda de "zapatos"
     time.sleep(1)
