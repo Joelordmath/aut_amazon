@@ -17,9 +17,13 @@ driver = webdriver.Chrome(service=service, options=chrome_options)
 driver.get("https://www.amazon.com")
 
 try:
-    time.sleep(1)
+    WebDriverWait(driver, 2).until(
+        EC.presence_of_element_located((By.LINK_TEXT, "Try different image"))
+    )
     driver.find_element(By.LINK_TEXT, "Try different image").click()
     time.sleep(1)
+except Exception as e:
+    pass
 
     search_box = driver.find_element(By.ID, "twotabsearchtextbox")
     search_box.send_keys("zapatos")
