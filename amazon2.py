@@ -8,9 +8,7 @@ from webdriver_manager.chrome import ChromeDriverManager
 import time
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from selenium.common.exceptions import TimeoutException, NoSuchElementException
 
-# Configuración del driver
 chrome_options = Options()
 chrome_options.add_argument("--start-maximized")
 service = Service(ChromeDriverManager().install())
@@ -22,23 +20,19 @@ try:
     driver.find_element(By.LINK_TEXT, "Try different image").click()
     time.sleep(1)
 
-    # Paso 1: Realizar una búsqueda de "zapatos"
-    time.sleep(1)
     search_box = driver.find_element(By.ID, "twotabsearchtextbox")
     search_box.send_keys("zapatos")
     search_box.submit()
-    time.sleep(2)
+    time.sleep(1)
 
-    # Paso 2: Filtrar por la marca "Skechers"
-    WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.LINK_TEXT, "Skechers"))).click()
-    time.sleep(2)
+    driver.find_element(By.LINK_TEXT, "Skechers").click()
+    time.sleep(1)
 
-    # Paso 3: Elegir rango de precios entre $100 y $200
-    actions = ActionChains(driver)
     low_price = driver.find_element(By.XPATH, "//*[@id='p_36/range-slider']/form/div[1]/label[1]")
     low_price.click()
     WebDriverWait(driver, 10).until(EC.visibility_of(low_price))
 
+    actions = ActionChains(driver)
     while True:
         current_value = driver.find_element(By.XPATH, "//*[@id='p_36/range-slider_slider-item_lower-bound-slider']").get_attribute('aria-valuetext')
         if current_value != "$100":
@@ -59,57 +53,55 @@ try:
     time.sleep(2)
 
     driver.find_element(By.XPATH, '//*[@id="p_36/range-slider"]/form/div[2]/div[2]').click()
-    time.sleep(2)
+    time.sleep(1)
 
-    # Paso 4: Imprimir el número de resultados encontrados
     results_text = driver.find_element(By.XPATH, "//*[@id='search']/span/div/h1/div/div[1]/div/h2").text
     print("Texto de resultados:", results_text)
 
-    # Función para imprimir los primeros 5 productos
     def print_top_5_products(order):
         print(f"Los primeros 5 productos ordenados por {order} son:")
-        products = driver.find_elements(By.XPATH, '//*[@data-index]')
-        for i, product in enumerate(products[:5]):
+        for i, product in enumerate(driver.find_elements(By.XPATH, '//*[@data-index>="2" and @data-index<="7"]')):
+            if i >= 5: break
+            title = product.find_element(By.XPATH, './/h2')
             try:
-                title = product.find_element(By.XPATH, './/h2').text
-                price = product.find_element(By.XPATH, './/span[@class="a-price"]').text
-            except NoSuchElementException:
-                title = "Título no disponible"
-                price = "Precio no disponible"
-            print(f"{i + 1}: {title} - Precio: {price}")
-        print()
+                price = product.find_element(By.XPATH, './/span[@class="a-price"]')
+                price_text = price.text
+            except:
+                price_text = "No tiene precio"
+            print(f"{i+1}: {title.text} - Precio: {price_text}")
+            time.sleep(2)
+    
+    def click_dropdown(driver):
+        actions = ActionChains(driver)
+        dropdown_button = driver.find_element(By.XPATH, '//*[@id="s-result-sort-select"]')
+        actions.move_to_element(dropdown_button).click().perform()        
 
-    # Función para manejar el menú desplegable
-    def click_dropdown(option_text):
-        dropdown = driver.find_element(By.ID, "s-result-sort-select")
-        dropdown.click()
-        time.sleep(2)
-        option = driver.find_element(By.XPATH, f"//option[contains(text(), '{option_text}')]")
-        option.click()
-        time.sleep(3)
+    # Ordenar de mayor a menor precio
+    click_dropdown(driver)
+    time.sleep(3)
+    actions.move_to_element(driver.find_element(By.XPATH, '//*[@id="s-result-sort-select_2"]')).click().perform()
+    time.sleep(3)
+    WebDriverWait(driver, 10).until(EC.visibility_of_all_elements_located((By.XPATH, '//*[@data-index]')))
+    print_top_5_products("mayor a menor precio")
 
-    # Paso 5: Ordenar los productos por "Precio: De más alto a más bajo"
-    click_dropdown("Precio: De más alto a más bajo")
-    print_top_5_products("Precio: De más alto a más bajo")
+    # Ordenar por los más recientes
+    click_dropdown(driver)
+    time.sleep(3)
+    actions.send_keys(Keys.DOWN * 2).perform()  
+    actions.send_keys(Keys.ENTER).perform()
+    time.sleep(3)
+    WebDriverWait(driver, 10).until(EC.visibility_of_all_elements_located((By.XPATH, '//*[@data-index]')))
+    print_top_5_products("más reciente")
 
-    # Paso 8: Ordenar por nuevos lanzamientos
-    click_dropdown("Novedades")
-    print_top_5_products("Nuevos lanzamientos")
+    # Ordenar por promedio de comentarios
+    click_dropdown(driver)
+    time.sleep(3)
+    actions.send_keys(Keys.UP).perform()
+    actions.send_keys(Keys.ENTER).perform()
+    time.sleep(3)
+    WebDriverWait(driver, 10).until(EC.visibility_of_all_elements_located((By.XPATH, '//*[@data-index]')))
+    print_top_5_products("promedio de comentarios de clientes")
 
-    # Paso 9: Ordenar por promedio de comentarios de clientes
-    click_dropdown("Promedio de comentarios de clientes")
-    print_top_5_products("Promedio de comentarios de clientes")
-
-except TimeoutException as e:
-    print("Error: Se agotó el tiempo de espera.")
-    driver.save_screenshot('error_screenshot.png')
-    print("Se guardó un screenshot con el nombre 'error_screenshot.png'.")
-    raise e
-except Exception as e:
-    print(f"Error inesperado: {e}")
-    driver.save_screenshot('unexpected_error_screenshot.png')
-    print("Se guardó un screenshot con el nombre 'unexpected_error_screenshot.png'.")
-    raise e
 finally:
     driver.quit()
     
