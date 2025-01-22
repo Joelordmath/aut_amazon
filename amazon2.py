@@ -81,7 +81,7 @@ try:
     time.sleep(3)
     actions.move_to_element(driver.find_element(By.XPATH, '//*[@id="s-result-sort-select_2"]')).click().perform()
     time.sleep(3)
-    WebDriverWait(driver, 2).until(EC.visibility_of_all_elements_located((By.XPATH, '//*[@data-index]')))
+    WebDriverWait(driver, 10).until(EC.visibility_of_all_elements_located((By.XPATH, '//*[@data-index]')))
     print_top_5_products("mayor a menor precio")
 
     # Ordenar por los más recientes
@@ -90,7 +90,7 @@ try:
     actions.send_keys(Keys.DOWN * 2).perform()  
     actions.send_keys(Keys.ENTER).perform()
     time.sleep(3)
-    WebDriverWait(driver, 2).until(EC.visibility_of_all_elements_located((By.XPATH, '//*[@data-index]')))
+    WebDriverWait(driver, 10).until(EC.visibility_of_all_elements_located((By.XPATH, '//*[@data-index]')))
     print_top_5_products("más reciente")
 
     # Ordenar por promedio de comentarios
@@ -99,7 +99,7 @@ try:
     actions.send_keys(Keys.UP).perform()
     actions.send_keys(Keys.ENTER).perform()
     time.sleep(3)
-    WebDriverWait(driver, 2).until(EC.visibility_of_all_elements_located((By.XPATH, '//*[@data-index]')))
+    WebDriverWait(driver, 10).until(EC.visibility_of_all_elements_located((By.XPATH, '//*[@data-index]')))
     print_top_5_products("promedio de comentarios de clientes")
 
 finally:
